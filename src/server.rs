@@ -5,13 +5,13 @@
 //!
 
 use actix_multipart::{Field, Multipart, MultipartError};
-use actix_web::{error, web, Error, App, HttpServer, HttpResponse, Responder};
+use actix_web::{error, web, App, Error, HttpResponse, HttpServer, Responder};
 use futures::future::{err, Either};
 use futures::{Future, Stream};
-use web::{Data, Form, get, post, resource, route};
+use web::{get, post, resource, route};
 
 use std::fs::File;
-use std::io::{ErrorKind,Write};
+use std::io::{ErrorKind, Write};
 use std::time::{Duration, SystemTime};
 
 ///Server struct for each server to create
@@ -20,7 +20,6 @@ pub struct Server {
     pub address: String,
     pub port: String,
 }
-
 
 impl Server {
     ///start function:
@@ -54,15 +53,10 @@ impl Server {
     }
 }
 ///process multipart image file
-pub fn load_image(
-    multipart: Multipart,
-) -> impl Future<Item = impl Responder, Error = Error> {
-    println!("load image process initiated.  ",);
-
+pub fn load_image(multipart: Multipart) -> impl Future<Item = impl Responder, Error = Error> {
     //actually upload it to the server
     upload(multipart)
 }
-
 
 pub fn save_file(field: Field) -> impl Future<Item = i64, Error = Error> {
     let base = "downloads/upload_".to_owned();
@@ -109,17 +103,19 @@ pub fn save_file(field: Field) -> impl Future<Item = i64, Error = Error> {
     )
 }
 
-pub fn upload(
-    multipart: Multipart,
-) -> impl Future<Item = impl Responder, Error = Error> {
+pub fn upload(multipart: Multipart) -> impl Future<Item = impl Responder, Error = Error> {
+    println!("Upload initiated.");
     multipart
         .map_err(error::ErrorInternalServerError)
         .map(|field| save_file(field).into_stream())
         .flatten()
         .collect()
-        .map(|_sizes| multipart_image())
+        .map(|_sizes| {
+            println!("Multipart request processed successfully.");
+            HttpResponse::Ok().body("Success!\n")
+        })
         .map_err(|e| {
-            println!("failed: {}", e);
+            println!("Upload failed: {}", e);
             e
         })
 }
@@ -131,6 +127,5 @@ pub fn multipart_image() -> Result<HttpResponse, Error> {
 
 ///404 page
 pub fn p404() -> Result<HttpResponse, Error> {
-    Ok(HttpResponse::NotFound()
-.body("Not found, try another one!\n"))
+    Ok(HttpResponse::NotFound().body("Not found, try another one!\n"))
 }
