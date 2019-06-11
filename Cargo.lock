@@ -847,7 +847,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "multipart"
+name = "multipart-example"
 version = "0.1.0"
 dependencies = [
  "actix-files 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",

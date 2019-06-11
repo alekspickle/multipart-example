@@ -24,7 +24,7 @@ RUN cargo build --release
 
 # Now, we need to build our _real_ Docker container, copying in `multipart-example`.
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates && mkdir downloads
 
 # \ - next line operator
 COPY --from=builder \

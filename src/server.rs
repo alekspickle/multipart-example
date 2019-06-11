@@ -122,6 +122,8 @@ pub fn upload(multipart: Multipart) -> impl Future<Item = impl Responder, Error 
 
 ///multipart request image page
 pub fn multipart_image() -> Result<HttpResponse, Error> {
+    //TODO: insert a form?
+    let body = "";
     Ok(HttpResponse::Ok().body("Ready for multipart upload!\n"))
 }
 
