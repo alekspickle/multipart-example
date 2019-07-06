@@ -5,10 +5,12 @@
 //!
 
 use actix_multipart::{Field, Multipart, MultipartError};
-use actix_web::{error, web, App, Error, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    client::Client, error, http::header, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
+};
 use futures::future::{err, Either};
 use futures::{Future, Stream};
-use web::{get, post, resource, route};
+use web::{get, post, resource, route, Form};
 
 use std::fs::File;
 use std::io::{ErrorKind, Write};
@@ -20,6 +22,8 @@ pub struct Server {
     pub address: String,
     pub port: String,
 }
+
+
 
 impl Server {
     ///start function:
@@ -33,6 +37,11 @@ impl Server {
         let server = HttpServer::new(|| {
             App::new()
                 .service(resource("/").route(get().to(|| HttpResponse::Ok())))
+                .service(
+                    resource("/get_pasta")
+                        .route(get().to(get_pasta))
+                        .route(post().to(get_pasta)),
+                )
                 .service(
                     resource("/multipart_image")
                         .route(get().to(multipart_image))
@@ -53,12 +62,12 @@ impl Server {
     }
 }
 ///process multipart image file
-pub fn load_image(multipart: Multipart) -> impl Future<Item = impl Responder, Error = Error> {
+fn load_image(multipart: Multipart) -> impl Future<Item = impl Responder, Error = Error> {
     //actually upload it to the server
     upload(multipart)
 }
 
-pub fn save_file(field: Field) -> impl Future<Item = i64, Error = Error> {
+fn save_file(field: Field) -> impl Future<Item = i64, Error = Error> {
     let base = "downloads/upload_".to_owned();
     let code = match SystemTime::now().duration_since(<std::time::SystemTime>::UNIX_EPOCH) {
         Ok(now) => now,
@@ -103,7 +112,7 @@ pub fn save_file(field: Field) -> impl Future<Item = i64, Error = Error> {
     )
 }
 
-pub fn upload(multipart: Multipart) -> impl Future<Item = impl Responder, Error = Error> {
+fn upload(multipart: Multipart) -> impl Future<Item = impl Responder, Error = Error> {
     println!("Upload initiated.");
     multipart
         .map_err(error::ErrorInternalServerError)
@@ -121,13 +130,17 @@ pub fn upload(multipart: Multipart) -> impl Future<Item = impl Responder, Error 
 }
 
 ///multipart request image page
-pub fn multipart_image() -> Result<HttpResponse, Error> {
-    //TODO: insert a form?
+fn multipart_image() -> Result<HttpResponse, Error> {
     let body = "";
     Ok(HttpResponse::Ok().body("Ready for multipart upload!\n"))
 }
 
 ///404 page
-pub fn p404() -> Result<HttpResponse, Error> {
+fn p404() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::NotFound().body("Not found, try another one!\n"))
+}
+
+///get pasta
+fn get_pasta() -> Result<HttpResponse, Error> {
+    Ok(HttpResponse::Found().header(header::LOCATION, "https://foaas.com/awesome/Stallman").finish())
 }
