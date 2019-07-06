@@ -1,0 +1,1 @@
+web: ./target/release/multipart-example $PORT
