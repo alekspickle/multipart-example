@@ -15,4 +15,5 @@ curl -v -F upload=@upload_example.png https://my-rust-showoff-server.herokuapp.c
 ## Reroute to pasta
 #### reroute to pasta from foaas.com
 ```bash
-curl -v https://my-rust-showoff-server.herokuapp.com/get_pasta```
+curl -v https://my-rust-showoff-server.herokuapp.com/get_pasta
+```
